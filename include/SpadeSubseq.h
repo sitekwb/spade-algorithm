@@ -8,65 +8,45 @@
 
 #include <vector>
 #include "Item.h"
-#include <boost/functional/hash.hpp>
+//#include <boost/functional/hash.hpp>
 #include <unordered_set>
-
-template<class T>
-struct SPComparator {
-    bool operator()(const std::shared_ptr<T> &a, const std::shared_ptr<T> &b) const {
-        return a->operator==(*b);
-    }
-};
-
-template<class T>
-struct SPHash{
-    size_t operator()(const std::shared_ptr<T> &a) const{
-        return std::hash<T>{}(*a);
-    }
-};
-
-template<class T>
-using uset = std::unordered_set<std::shared_ptr<T>, SPHash<T>, SPComparator<T>>;
-
+#include <ostream>
 
 class SpadeSubseq {
-    uset<Item> items;
+    std::unordered_set<Item> items;
 public:
-    explicit SpadeSubseq(const std::unordered_set<std::shared_ptr<Item>> &items);
-    explicit SpadeSubseq(const std::shared_ptr<Item> &item);
+    SpadeSubseq(const std::initializer_list<Item> &items);
     SpadeSubseq(const SpadeSubseq &rhs);
 
     bool operator==(const SpadeSubseq &rhs) const;
 
     bool operator!=(const SpadeSubseq &rhs) const;
 
-    [[nodiscard]] bool differsByOne(const std::shared_ptr<SpadeSubseq> &rhs) const;
+    [[nodiscard]] bool differsByOne(const SpadeSubseq &rhs) const;
 
-    std::optional<std::shared_ptr<Item>> lacksOne(const std::shared_ptr<SpadeSubseq> &rhs) const;
+    [[nodiscard]] std::optional<Item> lacksOne(const SpadeSubseq &rhs) const;
 
-    size_t size() const;
+    [[nodiscard]] size_t size() const;
 
-    [[nodiscard]] bool existsItem(const std::shared_ptr<Item> &item) const;
+    [[nodiscard]] bool existsItem(const Item &item) const;
 
-    [[nodiscard]] const uset<Item> &getItems() const;
+    [[nodiscard]] const std::unordered_set<Item> &getItems() const;
 
-    void addItem(std::shared_ptr<Item> const & item);
+    void addItem(const Item& item);
 
-    void addDifferingItem(std::shared_ptr<SpadeSubseq> const &subseq);
+    void addDifferingItem(const SpadeSubseq &subseq);
+
+    friend std::ostream &operator<<(std::ostream &os, const SpadeSubseq &subseq);
 };
 
-
-template<>
-struct std::hash<SpadeSubseq>
-{
-    std::size_t operator()(SpadeSubseq const& c) const noexcept
-    {
-        size_t hash_value = 0;
-        for(auto &e: c.getItems()){
-            hash_value += std::hash<Item>{}(*e);
-        }
-        return hash_value;
-    }
-};
+//
+//template<>
+//struct std::hash<SpadeSubseq>
+//{
+//    std::size_t operator()(SpadeSubseq const& c) const noexcept
+//    {
+//        return boost::hash_range(c.getItems().begin(), c.getItems().end());
+//    }
+//};
 
 #endif //SPADE_ALGORITHM_SPADESUBSEQ_H

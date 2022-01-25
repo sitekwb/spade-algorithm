@@ -5,78 +5,69 @@
 #include "../include/SpadeSequence.h"
 #include <boost/range/combine.hpp>
 
-SpadeSequence::SpadeSequence(const std::vector<std::shared_ptr<SpadeSubseq>> &rhs) {
-    for(auto const &e: rhs){
-        subseqs.push_back(std::make_shared<SpadeSubseq>(*e));
-    }
-}
+SpadeSequence::SpadeSequence(const std::initializer_list<SpadeSubseq> &rhs) :subseqs(rhs){}
 
-SpadeSequence::SpadeSequence(const std::shared_ptr<SpadeSubseq> &subseq) {
-    subseqs.push_back(std::make_shared<SpadeSubseq>(*subseq));
-}
+SpadeSequence::SpadeSequence(const Item &item) :subseqs({SpadeSubseq({item})}){}
 
-const std::vector<std::shared_ptr<SpadeSubseq>> &SpadeSequence::getSubseqs() const {
-    return subseqs;
-}
 
-std::pair<Similarity, Equality> SpadeSequence::compare(const std::shared_ptr<SpadeSequence> &seq) {
+std::pair<Similarity, Equality> SpadeSequence::compare(const SpadeSequence &seq) const {
     Similarity similarity = Similarity::SINGLE;
     Equality equality = Equality::EQUAL;
     bool differsByOne = false;
-    int size_differ = (int) this->size() - (int) seq->size();
+    int size_differ = (int) this->size() - (int) seq.size();
     if (size_differ > 1 || size_differ < -1) {
         return std::make_pair(Similarity::DIFFERENT, Equality::NON_EQUAL);
     }
     auto subseqs1 = this->getSubseqs();
-    auto subseqs2 = seq->getSubseqs();
+    auto subseqs2 = seq.getSubseqs();
     auto it1 = subseqs1.begin(), it2 = subseqs2.begin();
     for (; it1 != subseqs1.end() and it2 != subseqs2.end(); it1++, it2++) {
         auto s1 = *it1, s2 = *it2;
-        if (*s1 != *s2) {
+        if (s1 != s2) {
             if (it1 + 1 != subseqs1.end() and it2 + 1 != subseqs2.end()) {
                 // they differ in the middle so they are different
                 return std::make_pair(Similarity::DIFFERENT, Equality::NON_EQUAL);
             }
             // at least one of them is last
-            if (s1->differsByOne(s2)) {
+            if (s1.differsByOne(s2)) {
                 if (size_differ != 0) {
                     // they differ by one and there is something more
                     return std::make_pair(Similarity::DIFFERENT, Equality::NON_EQUAL);
                 }
                 // both of them are last
-                if (s1->size() == 1) {
+                if (s1.size() == 1) {
                     return std::make_pair(Similarity::SINGLE, Equality::NON_EQUAL);
                 } else {
                     return std::make_pair(Similarity::PLURAL, Equality::NON_EQUAL);
                 }
             } else {
-                auto lacking_item = s1->lacksOne(s2);
+                auto lacking_item = s1.lacksOne(s2);
                 if (lacking_item.has_value()) {
                     if (size_differ != 1) {
                         return std::make_pair(Similarity::DIFFERENT, Equality::NON_EQUAL);
                     }
                     // (P)()     (Px)
-                    if ((it1 + 1)->get()->size() != 1) {
+                    if ((it1 + 1)->size() != 1) {
                         return std::make_pair(Similarity::DIFFERENT, Equality::NON_EQUAL);
                     }
                     // (P)(?)     (Px)
-                    if (*((it1 + 1)->get()->getItems().begin()) == lacking_item.value()) {
+                    if (*((it1 + 1)->getItems().begin()) == lacking_item.value()) {
                         return std::make_pair(Similarity::FIRST_SINGLE, Equality::EQUAL);
                     } else {
                         return std::make_pair(Similarity::FIRST_SINGLE, Equality::NON_EQUAL);
                     }
                 }
-                lacking_item = s2->lacksOne(s1);
+                lacking_item = s2.lacksOne(s1);
                 if (lacking_item.has_value()) {
                     if (size_differ != -1) {
                         return std::make_pair(Similarity::DIFFERENT, Equality::NON_EQUAL);
                     }
                     // (Px)     (P)(?)
-                    if ((it2 + 1)->get()->size() != 1) {
+                    if ((it2 + 1)->size() != 1) {
                         return std::make_pair(Similarity::DIFFERENT, Equality::NON_EQUAL);
                     }
                     // (Px)     (P)(y/x)
-                    if (*((it2 + 1)->get()->getItems().begin()) == lacking_item.value()) {
+                    if (*((it2 + 1)->getItems().begin()) == lacking_item.value()) {
                         return std::make_pair(Similarity::FIRST_PLURAL, Equality::EQUAL);
                     } else {
                         return std::make_pair(Similarity::FIRST_PLURAL, Equality::NON_EQUAL);
@@ -85,7 +76,7 @@ std::pair<Similarity, Equality> SpadeSequence::compare(const std::shared_ptr<Spa
             }
         } else if (it1 + 1 == subseqs1.end() and it2 + 1 == subseqs2.end()) {
             // both are last
-            if ((*it1)->size() == 1) {
+            if ((*it1).size() == 1) {
                 return std::make_pair(Similarity::SINGLE, Equality::EQUAL);
             } else {
                 return std::make_pair(Similarity::PLURAL, Equality::EQUAL);
@@ -96,56 +87,45 @@ std::pair<Similarity, Equality> SpadeSequence::compare(const std::shared_ptr<Spa
 }
 
 
-size_t SpadeSequence::size() {
+size_t SpadeSequence::size() const {
     return subseqs.size();
 }
 
-SpadeSequence::SpadeSequence(const SpadeSequence &rhs) {
-    for(auto e: rhs.getSubseqs()){
-        subseqs.push_back(e);
-    }
-}
+SpadeSequence::SpadeSequence(const SpadeSequence &rhs) : subseqs(rhs.getSubseqs()){}
 
-void SpadeSequence::addSubseq(std::shared_ptr<SpadeSubseq> e) {
+void SpadeSequence::addSubseq(const SpadeSubseq& e) {
     subseqs.push_back(e);
 }
 
-void SpadeSequence::addSubseqBeforeLast(std::shared_ptr<SpadeSubseq> e) {
+void SpadeSequence::addSubseqBeforeLast(const SpadeSubseq& e) {
     subseqs.insert(--subseqs.end(), e);
 }
 
-void SpadeSequence::addItemsToLastSubseq(std::shared_ptr<SpadeSubseq>const & subseq) {
-    for(auto const &e: subseq->getItems()){
-        subseqs.back()->addItem(e);
+void SpadeSequence::addItemsToLastSubseq(const SpadeSubseq& subseq) {
+    for(auto const &e: subseq.getItems()){
+        subseqs.back().addItem(e);
     }
 }
 
-void SpadeSequence::addDifferingItemToLastSubseq(const std::shared_ptr<SpadeSubseq> &e) {
-    subseqs.back()->addDifferingItem(e);
+void SpadeSequence::addDifferingItemToLastSubseq(const SpadeSubseq& e) {
+    subseqs.back().addDifferingItem(e);
 }
 
 bool SpadeSequence::operator==(const SpadeSequence &rhs) const {
-    if(subseqs.size() != rhs.getSubseqs().size()){
-        return false;
-    }
-    auto it1 = this->subseqs.begin();
-    auto it2 = rhs.getSubseqs().begin();
-    for(;it1 != subseqs.end() and it2 != subseqs.end();it1++, it2++){
-        if((*it1)->operator!=(**it2)){
-            return false;
-        }
-    }
-    return true;
+    return subseqs == rhs.subseqs;
 }
 
 bool SpadeSequence::operator!=(const SpadeSequence &rhs) const {
     return !(rhs == *this);
 }
 
-SpadeSequence::SpadeSequence(const std::shared_ptr<SpadeSequence>&rhs) : SpadeSequence(rhs->getSubseqs()) {
-
+const std::vector<SpadeSubseq> &SpadeSequence::getSubseqs() const {
+    return subseqs;
 }
 
-SpadeSequence::SpadeSequence(const std::shared_ptr<Item> &item) : SpadeSequence({std::make_shared<SpadeSubseq>(item)}) {
-
+std::ostream &operator<<(std::ostream &os, const SpadeSequence &sequence) {
+    for(auto const &subseq: sequence.subseqs){
+        os << subseq;
+    }
+    return os;
 }

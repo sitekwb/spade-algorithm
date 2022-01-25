@@ -8,19 +8,19 @@
 #include "Item.h"
 #include "Client.h"
 #include <vector>
-#include <boost/functional/hash.hpp>
+#include <unordered_set>
 
 class Transaction {
-    std::vector<std::shared_ptr<Item>> items;
+    std::unordered_set<Item> items;
     int time;
-    std::shared_ptr<Client> client;
+    Client client;
 public:
-    Transaction(std::shared_ptr<Client> client, int time);
-    void addItem(std::shared_ptr<Item> item);
+    Transaction(const Client& client, int time);
+    void addItem(const Item& item);
 
     [[nodiscard]] int getTime() const;
 
-    [[nodiscard]] const std::shared_ptr<Client> &getClient() const;
+    [[nodiscard]] const Client &getClient() const;
 
     bool operator==(const Transaction &rhs) const;
 
@@ -34,15 +34,15 @@ public:
 
     bool operator>=(const Transaction &rhs) const;
 };
-
-template<>
-struct std::hash<Transaction>
-{
-    std::size_t operator()(Transaction const& t) const noexcept
-    {
-        return boost::hash_value(std::make_pair(t.getClient(), t.getTime()));
-    }
-};
+//
+//template<>
+//struct std::hash<Transaction>
+//{
+//    std::size_t operator()(Transaction const& t) const noexcept
+//    {
+//        return std::hash<int>{}(t.getClient()) + std::hash<int>{}(t.getTime());
+//    }
+//};
 
 
 

@@ -10,22 +10,22 @@
 #include "SpadeSequence.h"
 #include <vector>
 #include <functional>
+#include <map>
 
 class Tidlist {
-    std::shared_ptr<SpadeSequence> sequence;
-    std::map<std::shared_ptr<Client>, std::vector<std::shared_ptr<Transaction>>> transactions;
+    SpadeSequence sequence;
+    std::map<Client, std::vector<std::shared_ptr<Transaction>>> client_transactions;
+    unsigned long sup;
 public:
-    explicit Tidlist(std::shared_ptr<SpadeSequence> sequence);
+    explicit Tidlist(const SpadeSequence& sequence);
 
-    [[nodiscard]] unsigned long getSup() const;
-
-    explicit Tidlist(std::shared_ptr<Item> item);
-
-    void setSequence(std::shared_ptr<SpadeSequence> sequence);
+    explicit Tidlist(const Item& item);
 
     void addTransaction(std::shared_ptr<Transaction> transaction);
 
-    [[nodiscard]] const std::shared_ptr<SpadeSequence> &getSequence() const;
+    [[nodiscard]] unsigned long getSup() const;
+
+    [[nodiscard]] const SpadeSequence &getSequence() const;
 
     bool operator==(const Item &rhs) const;
 
@@ -39,20 +39,20 @@ public:
 
     bool operator!=(const Tidlist &rhs) const;
 
-    bool existsClient(const Client &client) const;
+    [[nodiscard]] bool existsClient(const Client &client) const;
 
-    [[nodiscard]] const std::map<std::shared_ptr<Client>, std::vector<std::shared_ptr<Transaction>>> &getTransactions() const;
+    [[nodiscard]] const std::map<Client, std::vector<std::shared_ptr<Transaction>>> &getClientTransactions() const;
 };
 
-
-template<>
-struct std::hash<Tidlist>
-{
-    std::size_t operator()(Tidlist const& t) const noexcept
-    {
-        return std::hash<SpadeSequence>{}(*t.getSequence());
-    }
-};
+//
+//template<>
+//struct std::hash<Tidlist>
+//{
+//    std::size_t operator()(Tidlist const& t) const noexcept
+//    {
+//        return std::hash<SpadeSequence>{}(t.getSequence());
+//    }
+//};
 
 
 

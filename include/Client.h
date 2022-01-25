@@ -13,7 +13,7 @@
 class Client {
     int id;
 public:
-    Client(int id);
+    explicit Client(int id);
 
     bool operator==(const Client &rhs) const;
 
@@ -31,17 +31,17 @@ public:
 
     bool operator>=(const Client &rhs) const;
 
-    int getId() const;
+    [[nodiscard]] int getId() const;
 
 };
-
-template<>
-struct std::hash<Client>
-{
-    std::size_t operator()(Client const& c) const noexcept
-    {
-        return std::hash<int>{}(c.getId());
-    }
-};
+//
+//template<>
+//struct std::hash<Client>
+//{
+//    std::size_t operator()(Client const& c) const noexcept
+//    {
+//        return std::hash<int>{}(c.getId());
+//    }
+//};
 
 #endif //SPADE_ALGORITHM_CLIENT_H

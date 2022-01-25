@@ -6,17 +6,31 @@
 #define SPADE_ALGORITHM_ITEM_H
 
 #include <functional>
+#include <ostream>
+#include <map>
 
 class Item {
     int id;
 public:
-    Item(int id);
+    explicit Item(int id);
 
-    int getId() const;
+    [[nodiscard]] int getId() const;
 
     bool operator==(const Item &rhs) const;
 
     bool operator!=(const Item &rhs) const;
+
+    bool operator<(const Item &rhs) const;
+
+    bool operator>(const Item &rhs) const;
+
+    bool operator<=(const Item &rhs) const;
+
+    bool operator>=(const Item &rhs) const;
+
+    friend std::ostream &operator<<(std::ostream &os, const Item &item);
+
+    inline static std::map<Item, std::string> item_dictionary;
 };
 
 

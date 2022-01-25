@@ -4,25 +4,22 @@
 
 #include "../include/Transaction.h"
 
-Transaction::Transaction(std::shared_ptr<Client> client, int time) : time(time), client(std::move(client)) {}
+Transaction::Transaction(const Client& client, int time) : time(time), client(client) {}
 
-void Transaction::addItem(std::shared_ptr<Item> item) {
-    items.push_back(item);
+void Transaction::addItem(const Item& item) {
+    items.insert(item);
 }
 
 int Transaction::getTime() const {
     return time;
 }
 
-const std::shared_ptr<Client> &Transaction::getClient() const {
+const Client& Transaction::getClient() const {
     return client;
 }
 
 bool Transaction::operator<(const Transaction &rhs) const {
-    if(client != rhs.client){
-        return false;
-    }
-    return time < rhs.time;
+    return client == rhs.client && time < rhs.time;
 }
 
 bool Transaction::operator>(const Transaction &rhs) const {

@@ -11,6 +11,7 @@
 #include <optional>
 #include <map>
 #include <unordered_set>
+#include <ostream>
 #include "Client.h"
 #include "Transaction.h"
 #include "Tidlist.h"
@@ -23,30 +24,32 @@ enum AddTransactionWhen{
 
 class SpadeAlgorithm {
     int minSup;
-    uset<Client> clients;
-    std::vector<std::shared_ptr<Transaction>> transactions;
-    uset<Item> items;
     std::vector<std::vector<std::shared_ptr<Tidlist>>> tidlists;
+    int maxLines;
+    int lines;
 public:
-    SpadeAlgorithm(int minSup);
+    SpadeAlgorithm(int minSup, int maxLines = std::numeric_limits<int>::max());
+
+    friend std::ostream &operator<<(std::ostream &os, const SpadeAlgorithm &algorithm);
+
+    void fetchDictionary(const std::string &dictionary_filename);
+
+    void setRelationalMinSup(float frac);
+
+    void reset();
 
     void run();
     void iterate();
-    void fetchData(std::string &filename);
-    std::optional<std::shared_ptr<Client>> findClient(int cid);
-    std::shared_ptr<Client> getOrCreateClient(int cid);
+    void fetchData(std::string &filename, std::optional<float> minSupFrac = std::nullopt);
 
-    std::optional<std::shared_ptr<Item>> findItem(int id);
-    std::shared_ptr<Item> getOrCreateItem(int id);
+    static std::optional<std::shared_ptr<Tidlist>> findTidlist(const SpadeSequence& seq, const std::vector<std::shared_ptr<Tidlist>> &tidlist_vector);
+    static std::shared_ptr<Tidlist> getOrCreateTidlist(const SpadeSequence& seq, std::vector<std::shared_ptr<Tidlist>> &tidlist_vector);
 
-    std::optional<std::shared_ptr<Tidlist>> findSingleTidlist(const std::shared_ptr<SpadeSequence>& seq, std::vector<std::shared_ptr<Tidlist>> &tidlist_vector);
-    std::shared_ptr<Tidlist> getOrCreateTidlist(const std::shared_ptr<SpadeSequence>& seq, std::vector<std::shared_ptr<Tidlist>> &tidlist_vector);
+    void addCorrespondingTransactions(AddTransactionWhen addTransactionWhen, const std::shared_ptr<Tidlist> &e, const std::shared_ptr<Tidlist> &f, std::shared_ptr<Tidlist> &tidlist);
 
+    void removeIfNotFrequent(std::vector<std::shared_ptr<Tidlist>> &ust);
     [[nodiscard]] size_t getLastTidlistSetSize() const;
 
-
-
-    void findTransactions(AddTransactionWhen addTransactionWhen, std::shared_ptr<Tidlist> const &e, std::shared_ptr<Tidlist> const &f, std::shared_ptr<Tidlist> &tidlist);
 };
 
 

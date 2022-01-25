@@ -7,9 +7,10 @@
 
 
 #include <vector>
+#include <ostream>
 #include "Item.h"
 #include "SpadeSubseq.h"
-#include <boost/functional/hash.hpp>
+//#include <boost/functional/hash.hpp>
 
 enum Similarity{
     DIFFERENT,
@@ -25,44 +26,41 @@ enum Equality{
 };
 
 class SpadeSequence {
-    std::vector<std::shared_ptr<SpadeSubseq>> subseqs;
+    std::vector<SpadeSubseq> subseqs;
 public:
-    explicit SpadeSequence(const std::vector<std::shared_ptr<SpadeSubseq>> &subseqs);
-    explicit SpadeSequence(const std::shared_ptr<SpadeSubseq> &subseq);
-    explicit SpadeSequence(const std::shared_ptr<Item> &item);
-
-    size_t size();
-    std::pair<Similarity, Equality> compare(std::shared_ptr<SpadeSequence>const& seq);
-
+    SpadeSequence(const std::initializer_list<SpadeSubseq> &subseqs);
+    explicit SpadeSequence(const Item &item);
     SpadeSequence(const SpadeSequence& rhs);
-    explicit SpadeSequence(const std::shared_ptr<SpadeSequence>& rhs);
-    [[nodiscard]] const std::vector<std::shared_ptr<SpadeSubseq>> &getSubseqs() const;
-    void addSubseq(std::shared_ptr<SpadeSubseq> e);
 
-    void addSubseqBeforeLast(std::shared_ptr<SpadeSubseq> e);
+    [[nodiscard]] size_t size() const;
+    [[nodiscard]] std::pair<Similarity, Equality> compare(const SpadeSequence& seq) const;
 
-    void addItemsToLastSubseq(std::shared_ptr<SpadeSubseq>const & e);
+    [[nodiscard]] const std::vector<SpadeSubseq> &getSubseqs() const;
 
-    void addDifferingItemToLastSubseq(std::shared_ptr<SpadeSubseq>const & e);
+    void addSubseq(const SpadeSubseq& e);
+
+    void addSubseqBeforeLast(const SpadeSubseq& e);
+
+    void addItemsToLastSubseq(const SpadeSubseq& e);
+
+    void addDifferingItemToLastSubseq(const SpadeSubseq& e);
 
     bool operator==(const SpadeSequence &rhs) const;
 
     bool operator!=(const SpadeSequence &rhs) const;
+
+    friend std::ostream &operator<<(std::ostream &os, const SpadeSequence &sequence);
 };
 
-
-template<>
-struct std::hash<SpadeSequence>
-{
-    std::size_t operator()(SpadeSequence const& c) const noexcept
-    {
-        size_t hash_value = 0;
-        for(auto &e: c.getSubseqs()){
-            hash_value += std::hash<SpadeSubseq>{}(*e);
-        }
-        return hash_value;
-    }
-};
+//
+//template<>
+//struct std::hash<SpadeSequence>
+//{
+//    std::size_t operator()(SpadeSequence const& c) const noexcept
+//    {
+//        return boost::hash_range(c.getSubseqs().begin(), c.getSubseqs().end());
+//    }
+//};
 
 
 #endif //SPADE_ALGORITHM_SPADESEQUENCE_H
